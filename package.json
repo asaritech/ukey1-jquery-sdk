@@ -1,0 +1,39 @@
+{
+  "name": "ukey1-jquery-sdk",
+  "version": "1.0.0",
+  "description": "Ukey1 SDK plugin for jQuery",
+  "main": "src/jquery.ukey1.js",
+  "dependencies": {
+    "jquery": ">=1.6.0",
+    "js-cookie": "^2.1.3"
+  },
+  "author": "Ukey1 Community (https://github.com/asaritech/ukey1-jquery-sdk/contributors)",
+  "license": "MIT",
+  "tags": [
+    "asaritech",
+    "ukey1",
+    "sdk",
+    "jquery"
+  ],
+  "keywords": [
+    "ukey1",
+    "authentication",
+    "social login",
+    "login",
+    "auth0",
+    "jquery",
+    "jquery-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:asaritech/ukey1-jquery-sdk.git"
+  },
+  "homepage": "https://github.com/asaritech/ukey1-jquery-sdk#readme",
+  "bugs": "https://github.com/asaritech/ukey1-jquery-sdk/issues",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-header": "^1.8.8",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^2.0.1"
+  }
+}
