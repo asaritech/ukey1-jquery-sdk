@@ -1,6 +1,6 @@
 {
   "name": "ukey1-jquery-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Ukey1 SDK plugin for jQuery",
   "main": "src/jquery.ukey1.js",
   "dependencies": {
