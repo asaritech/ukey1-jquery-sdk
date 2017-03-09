@@ -238,7 +238,7 @@
     o.apiVersion = apiVersion;
 
     if (!o.host) {
-      o.host = $.fn.ukey1.defaults.host;
+      o.host = $.ukey1.defaults.host;
     }
 
     return o;
