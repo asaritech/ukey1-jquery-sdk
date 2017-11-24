@@ -39,7 +39,7 @@ First, you need [App ID](https://dashboard.ukey.one/developer). In our dashboard
 ```html
 <script src="/path/to/jquery.js"></script>
 <script src="/path/to/js.cookie.js"></script>
-<script src="https://gateway.ukey1cdn.com/components/ukey1-jquery-sdk/v2.0.0/jquery.ukey1.min.js"></script>
+<script src="https://code.ukey1cdn.com/ukey1-jquery-sdk/v2.0.0/dist/jquery.ukey1.min.js"></script>
 ```
 
 ### Example
