@@ -2,12 +2,12 @@
 
 This repository contains the open source jQuery plugin that allows you to client-side access the **[Ukey1 API](http://ukey.one)** from your website that uses jQuery.
 
+**!!! Please note that versions older than 2.0.0 are deprecated and don't work since November 15, 2017 !!!**
+
 ## About Ukey1
 
-[Ukey1](http://ukey.one) is *an aggregator of your user's social identities*.
-Ukey1 is also a [OAuth 2.0](https://oauth.net/2/) provider but what is more important, it connects all major identity providers
-(like [Google](https://developers.google.com/identity/) or [Facebook](https://developers.facebook.com/docs/facebook-login))
-into one sophisticated solution. It's the easiest way to login to websites! Read [more](http://ukey.one/).
+[Ukey1](https://ukey.one) is an Authentication and Data Protection Service with the mission to enhance security of websites. 
+The service is designed to help you with EU GDPR compliance.
 
 ### Ukey1 flow for this jQuery SDK
 
@@ -18,36 +18,28 @@ into one sophisticated solution. It's the easiest way to login to websites! Read
 4. User signs in using their favourite solution and authorizes your app
 5. User is redirected back to predefined URL
 6. SDK checks the result and gets a unique access token - user is authenticated
-7. SDK gets user's data and that's it
+7. That's it - user is authenticated (your app can make API calls to get user's data)
 
 ### API specification
 
-You can also download our API specification in the following formats:
-- [RAML 1.0 specification](https://ukey1.nooledge.com/var/public/api.raml) (learn more about [RAML](http://raml.org/))
-- [Swagger 2.0 specification](https://ukey1.nooledge.com/var/public/api.yaml) (learn more about [Swagger](http://swagger.io/) or open the specification in [editor](http://editor.swagger.io/#/))
+- [API specification](https://ukey1.docs.apiary.io/)
+- [Documentation](https://asaritech.github.io/ukey1-docs/)
 
 ## Requirements
 
 - [jQuery](http://jQuery.com/) >=1.6.0
 - [js-cookie](https://www.npmjs.com/package/js-cookie) ^2.1.3
 
-## CDN
-
-We use [GitCDN](https://gitcdn.xyz/).
-You may also download [dist/jquery.ukey1.min.js](https://raw.githubusercontent.com/asaritech/ukey1-jquery-sdk/master/dist/jquery.ukey1.min.js) and use this file
-directly from your web server.
-
 ## Usage
 
-First, you need your `App ID`. Remember that jQuery SDK serves for client-side apps, so *you won't need the Secret Key*!
-We also recommend to set the *Client-side protection* in our Developer Console.
+First, you need [App ID](https://dashboard.ukey.one/developer). In our dashboard, we also recommend to activate Domain and Return URL Protection.
 
 **Important! This plugin is based on jQuery and requires also js-cookie plugin.**
 
 ```html
 <script src="/path/to/jquery.js"></script>
 <script src="/path/to/js.cookie.js"></script>
-<script src="https://gitcdn.xyz/repo/asaritech/ukey1-jquery-sdk/master/dist/jquery.ukey1.min.js"></script>
+<script src="https://gateway.ukey1cdn.com/components/ukey1-jquery-sdk/v2.0.0/jquery.ukey1.min.js"></script>
 ```
 
 ### Example
@@ -56,7 +48,7 @@ First, let's see how to redirect user to Ukey1 Gateway...
 
 ```javascript
 $(function() {
-  var UKEY1_APP_ID = 'your-app-id';
+  var UKEY1_APP_ID = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
 
   $('.ukey1-button').click(function(e) {
     e.preventDefault();
@@ -70,28 +62,24 @@ $(function() {
       // - it may contain query parameters and/or fragment
       returnUrl: 'http://example.org/login?action=check&user=XXX#fragment',
 
-      // Here is a list of possible grants:
-      // - `access_token` (always default)
-      // - `email` (access to user's email)
-      // - `image` (access to user's thumbnail)
-      // NOTE: If you are eligible to use "!" (means a required value), you may use it with `email!` and `image!`
-      // NOTE: `refresh_token` is prohibited for client-side integrations!
-      scope: ['access_token', 'email', 'image'],
+      // See the full list of permissions: https://asaritech.github.io/ukey1-docs/Docs/Permissions/#data-fields
+      scope: ['firstname', 'email'],
 
-      // This option allows you change the gateway screen (Sign up versus Log in)
+      // This option allows you to change the message on the gateway screen ("Sign up" versus "Log in")
       signup: true
     };
 
     try {
       new $.ukey1().connect(options);
     } catch (error) {
-      console.log('Something was wrong', error);
+      console.log('Something went wrong', error);
     }
   });
 });
 ```
 
-Then the user is redirected back to your app. You have to handle the event and call authorization method like this:
+Once the user authorizes your app, Ukey1 redirects the user back to your app to the URL you specified earlier. 
+The same is done if user cancels the request. You have to handle the event and call authorization method like this:
 
 ```javascript
 // ...
@@ -99,20 +87,16 @@ Then the user is redirected back to your app. You have to handle the event and c
 function authorizationEvent() {
   var options = {
     appId: UKEY1_APP_ID,
-    success: function (data) {
-      // This callback is called when user is successfully authorized
+    success: function (user, scope) {
+      // This callback is called when user is authenticated and your app is authorized
 
-      // Store `data` in localStorage or sessionStorage if you want
-      // And do whatever you want
+      var id = user.id;
 
-      var id = data.id;
-      var displayName = data.name.display;
-      var firstName = data.name.first_name;
-      var surname = data.name.surname;
-      var language = data.locale.language;
-      var country = data.locale.country;
-      var email = (data.email ? data.email : ''); // NOTE: may be empty if user don't wanna share their email with your app
-      var image = (data.thumbnail ? data.thumbnail.url : ''); // NOTE: may be empty if user don't wanna share their image with your app
+      // Please note that everything excepts ID and mandatory fields may be empty if the user decides to not to grant you access to that field
+      var firstName = user.firstname;
+      var email = user.email;
+
+      console.log(user, scope);
     },
     finished: function (success) {
       // This callback is called everytime (even if request is successful or not)
@@ -129,7 +113,7 @@ function authorizationEvent() {
 // ...
 ```
 
-We have also prepared a working [example](https://github.com/noo-zh/ukey1-jquery-sdk-example) - get to know how to implement our SDK quickly!
+We have also prepared a working [example](https://github.com/noo-zh/ukey1-jquery-sdk-example) - try it and get to know how to implement our SDK quickly!
 
 ## License
 

@@ -40,21 +40,18 @@
 
   $.ukey1 = function () {};
 
-  var sdkVersion = '1.0.0';
-  var apiVersion = '/v1';
   var ukey1GetParams = '_ukey1';
-  var timeout = 10000;
-  var userAgent = 'ukey1-jquery-sdk/';
-  var authMethod = 'UKEY1 ';
+  var timeout = 5000;
+  var authMethod = 'Bearer ';
 
   $.ukey1.defaults = {
-    host: 'https://ukey1-api.nooledge.com'
+    host: 'https://api.ukey.one'
   };
 
   // $.ukey1.connect
 
   $.ukey1.prototype.connect = function (o) {
-    var endpoint = '/auth/connect';
+    var endpoint = '/auth/v2/connect';
     var options = checkOptions(o);
     var r, body;
 
@@ -82,9 +79,9 @@
   // $.ukey1.accessToken
 
   $.ukey1.prototype.accessToken = function (o) {
-    var endpoint = '/auth/token';
+    var endpoint = '/auth/v2/token';
     var options = checkOptions(o);
-    var r, body, requestId, connectId, status;
+    var r, body, requestId, connectId, status, authCode;
 
     checkOption('options.success', options.success, 'function', true);
     checkOption('options.finished', options.finished, 'function', true);
@@ -112,6 +109,7 @@
     requestId = getQueryParameter(ukey1GetParams + '[request_id]');
     connectId = getQueryParameter(ukey1GetParams + '[connect_id]');
     status = getQueryParameter(ukey1GetParams + '[result]');
+    authCode = getQueryParameter(ukey1GetParams + '[code]');
 
     if (!requestId || requestId !== options.requestId) {
       console.log('Invalid requestId');
@@ -126,14 +124,7 @@
     }
 
     if (status !== 'authorized') {
-      if (status === 'canceled') {
-        console.log('User has canceled the request');
-      } else if (status === 'expired') {
-        console.log('The request expired');
-      } else {
-        console.log('Unknown status');
-      }
-
+      console.log('User has canceled the request');
       options.finished(false);
       return false;
     }
@@ -144,7 +135,8 @@
     r = new Request(options);
     body = {
       'request_id': options.requestId,
-      'connect_id': options.connectId
+      'connect_id': options.connectId,
+      'auth_code': authCode
     };
 
     r.send(body, function (response) {
@@ -158,8 +150,6 @@
     checkOption('options', o, 'object', true);
     checkOption('options.appId', o.appId, 'string', true);
     checkOption('options.host', o.host, 'string', true);
-    checkOption('options.sdkVersion', o.sdkVersion, 'string', true);
-    checkOption('options.apiVersion', o.apiVersion, 'string', true);
     checkOption('options.method', o.method, 'string', true, ['GET', 'POST']);
     checkOption('options.endpoint', o.endpoint, 'string', true);
     checkOption('options.accessToken', o.accessToken, 'string', false);
@@ -168,7 +158,6 @@
   }
 
   Request.prototype.prepareHeaders = function (h) {
-    h['x-ukey1-user-agent'] = h['User-Agent'] = this.prepareUserAgent();
     h['x-ukey1-app'] = this.o.appId;
 
     if (this.o.accessToken) {
@@ -178,16 +167,11 @@
     return h;
   };
 
-  Request.prototype.prepareUserAgent = function () {
-    return userAgent + this.o.sdkVersion + ' Jquery/' + $.fn.jquery +
-      (navigator ? ' ' + navigator.userAgent : '');
-  };
-
   Request.prototype.send = function (body, callback) {
     var options = {}, headers = {};
 
     headers = this.prepareHeaders(headers);
-    options.url = this.o.host + this.o.apiVersion + this.o.endpoint;
+    options.url = this.o.host + this.o.endpoint;
     options.method = options.type = this.o.method;
     options.timeout = timeout;
     options.jsonp = false;
@@ -233,9 +217,6 @@
   function checkOptions(o) {
     checkOption('options', o, 'object', true);
     checkOption('options.appId', o.appId, 'string', true);
-
-    o.sdkVersion = sdkVersion;
-    o.apiVersion = apiVersion;
 
     if (!o.host) {
       o.host = $.ukey1.defaults.host;
@@ -296,7 +277,7 @@
   }
 
   function connectCallback(data, options) {
-    var gateway = data.gateway.url;
+    var gateway = data.gateway;
 
     if (options.signup) {
       gateway += (gateway.search(/\?/) >= 0 ? '&' : '?') + 'signup=1';
@@ -314,7 +295,7 @@
   }
 
   function accessTokenCallback(data, options) {
-    var endpoint = '/me';
+    var endpoint = '/auth/v2/me';
     var r;
 
     options.accessToken = data.access_token;
@@ -329,11 +310,7 @@
   }
 
   function userCallback(data, options) {
-    if (!data.authorized) {
-      throw new Error('User has canceled their consent to share data with your app');
-    }
-
-    options.success(data.user);
+    options.success(data.user, data.scope);
     options.finished(true);
   }
 }));
